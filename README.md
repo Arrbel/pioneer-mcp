@@ -43,8 +43,11 @@ Pioneer is being built up one vertical slice at a time. Currently available:
 | `list_environments` | Read-only, config-only. Lists environments declared in `platformio.ini` plus the resolved default. Lightweight alternative to `inspect_project`. |
 | `list_devices` | Read-only. Lists serial/USB devices visible to PlatformIO (port, description, hwid). |
 | `list_boards` | Read-only. Searches the PlatformIO board catalog by query (id, name, platform, MCU); results capped with truncation reporting. |
+| `build_project` | Compiles an environment (writes to `.pio/`, no hardware). Resolves the target environment and refuses ambiguous projects; reports RAM/Flash usage. |
+| `clean_project` | Removes build artifacts for an environment (`pio run -t clean`). No hardware interaction. |
+| `upload_firmware` | **Hardware-mutating.** Builds and flashes firmware to a connected board (`pio run -t upload`), optionally on a specific port. |
 
-Planned for `v0.1` (in progress): `build_project`, `clean_project`, `upload_firmware`, and persistent monitor sessions (`open_monitor_session` / `read_monitor_session` / `close_monitor_session`).
+Planned for `v0.1` (in progress): persistent monitor sessions (`open_monitor_session` / `read_monitor_session` / `close_monitor_session`).
 
 ## Scope
 

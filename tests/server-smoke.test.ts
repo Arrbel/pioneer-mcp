@@ -27,6 +27,9 @@ describe('server', () => {
     expect(names).toContain('list_environments');
     expect(names).toContain('list_devices');
     expect(names).toContain('list_boards');
+    expect(names).toContain('build_project');
+    expect(names).toContain('clean_project');
+    expect(names).toContain('upload_firmware');
 
     const result = await client.callTool({ name: 'doctor', arguments: {} });
     const content = result.content as { type: string; text: string }[];

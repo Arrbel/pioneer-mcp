@@ -20,6 +20,12 @@ import {
 } from './tools/list-environments.js';
 import { listDevicesInputSchema, runListDevices } from './tools/list-devices.js';
 import { listBoardsInputSchema, runListBoards } from './tools/list-boards.js';
+import { buildProjectInputSchema, runBuildProject } from './tools/build-project.js';
+import { cleanProjectInputSchema, runCleanProject } from './tools/clean-project.js';
+import {
+  uploadFirmwareInputSchema,
+  runUploadFirmware,
+} from './tools/upload-firmware.js';
 
 /** Reads the server version from package.json at runtime. */
 export function readServerVersion(): string {
@@ -99,6 +105,44 @@ export function createServer(): McpServer {
       inputSchema: listBoardsInputSchema.shape,
     },
     async (args) => toMcpContent(await runListBoards(args))
+  );
+
+  server.registerTool(
+    'build_project',
+    {
+      title: 'Build a PlatformIO environment',
+      description:
+        'Compiles an environment (writes artifacts to .pio/; no hardware interaction). Resolves the target ' +
+        'environment from platformio.ini when not given and refuses ambiguous projects. Reports compile ' +
+        'success and RAM/Flash usage.',
+      inputSchema: buildProjectInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runBuildProject(args))
+  );
+
+  server.registerTool(
+    'clean_project',
+    {
+      title: 'Clean build artifacts',
+      description:
+        'Removes build artifacts for an environment (pio run -t clean). Touches only the project .pio output; ' +
+        'no hardware interaction. Refuses ambiguous environment resolution.',
+      inputSchema: cleanProjectInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runCleanProject(args))
+  );
+
+  server.registerTool(
+    'upload_firmware',
+    {
+      title: 'Upload firmware to a board',
+      description:
+        'HARDWARE-MUTATING: builds and flashes firmware to a connected board (pio run -t upload). Writes to a ' +
+        'physical device. Resolves the environment (refusing ambiguous projects); optionally targets a specific ' +
+        'upload port. Discover ports with list_devices.',
+      inputSchema: uploadFirmwareInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runUploadFirmware(args))
   );
 
   return server;

@@ -1,0 +1,62 @@
+{
+  "name": "pioneer-mcp",
+  "version": "0.1.0",
+  "description": "A board-agnostic Model Context Protocol server that turns PlatformIO into a structured execution layer for AI agents — inspect, build, upload, and monitor firmware across ESP32, AVR, STM32, RP2040 and more.",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "pioneer-mcp": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.md\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.md\"",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "platformio",
+    "embedded",
+    "iot",
+    "arduino",
+    "esp32",
+    "stm32",
+    "rp2040",
+    "firmware",
+    "serial-monitor",
+    "ai-agent"
+  ],
+  "author": "Arrbel",
+  "license": "MIT",
+  "files": [
+    "build",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}

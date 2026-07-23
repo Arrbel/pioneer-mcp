@@ -1,0 +1,37 @@
+import { describe, expect, it } from 'vitest';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { createServer } from '../src/server.js';
+
+/**
+ * End-to-end smoke test: connect a real MCP client to the server over an
+ * in-memory transport and confirm the doctor tool is listed and callable.
+ */
+describe('server', () => {
+  it('lists registered tools and responds to a doctor call', async () => {
+    const server = createServer();
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+
+    const client = new Client({ name: 'test-client', version: '0.0.0' });
+
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport),
+    ]);
+
+    const tools = await client.listTools();
+    const names = tools.tools.map((t) => t.name);
+    expect(names).toContain('doctor');
+
+    const result = await client.callTool({ name: 'doctor', arguments: {} });
+    const content = result.content as { type: string; text: string }[];
+    expect(content[0]?.type).toBe('text');
+    const parsed = JSON.parse(content[0]!.text) as { data?: unknown };
+    expect(parsed).toHaveProperty('status');
+    expect(parsed).toHaveProperty('data');
+
+    await client.close();
+    await server.close();
+  });
+});

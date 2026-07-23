@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createServer } from './server.js';
 import { resolvePioBinary } from './pio/exec.js';
+import { closeAllSessions } from './pio/monitor.js';
 
 async function main(): Promise<void> {
   const cliPath = await resolvePioBinary();
@@ -24,6 +25,14 @@ async function main(): Promise<void> {
   const server = createServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
+
+  // Release any open serial ports if the process is asked to stop.
+  const shutdown = (): void => {
+    closeAllSessions();
+    process.exit(0);
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 
   console.error('Pioneer MCP server running on stdio');
 }

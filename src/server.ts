@@ -26,6 +26,14 @@ import {
   uploadFirmwareInputSchema,
   runUploadFirmware,
 } from './tools/upload-firmware.js';
+import {
+  openMonitorSessionInputSchema,
+  runOpenMonitorSession,
+  readMonitorSessionInputSchema,
+  runReadMonitorSession,
+  closeMonitorSessionInputSchema,
+  runCloseMonitorSession,
+} from './tools/monitor-session.js';
 
 /** Reads the server version from package.json at runtime. */
 export function readServerVersion(): string {
@@ -143,6 +151,43 @@ export function createServer(): McpServer {
       inputSchema: uploadFirmwareInputSchema.shape,
     },
     async (args) => toMcpContent(await runUploadFirmware(args))
+  );
+
+  server.registerTool(
+    'open_monitor_session',
+    {
+      title: 'Open a persistent serial monitor',
+      description:
+        'Opens a long-lived serial monitor on a port and returns a sessionId. Because opening the port resets ' +
+        'most boards, a persistent session lets you read output over time without re-resetting on each read. ' +
+        'Pair with read_monitor_session and close_monitor_session.',
+      inputSchema: openMonitorSessionInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runOpenMonitorSession(args))
+  );
+
+  server.registerTool(
+    'read_monitor_session',
+    {
+      title: 'Read from a monitor session',
+      description:
+        'Returns output collected by an open monitor session. By default returns only lines since the last ' +
+        'read; pass fromStart for the full retained buffer. Reports dropped lines and process exit.',
+      inputSchema: readMonitorSessionInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runReadMonitorSession(args))
+  );
+
+  server.registerTool(
+    'close_monitor_session',
+    {
+      title: 'Close a monitor session',
+      description:
+        'Closes a monitor session, kills its process, and releases the serial port. Always call when finished ' +
+        'so the port is free for upload or other tools.',
+      inputSchema: closeMonitorSessionInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runCloseMonitorSession(args))
   );
 
   return server;

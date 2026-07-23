@@ -46,8 +46,11 @@ Pioneer is being built up one vertical slice at a time. Currently available:
 | `build_project` | Compiles an environment (writes to `.pio/`, no hardware). Resolves the target environment and refuses ambiguous projects; reports RAM/Flash usage. |
 | `clean_project` | Removes build artifacts for an environment (`pio run -t clean`). No hardware interaction. |
 | `upload_firmware` | **Hardware-mutating.** Builds and flashes firmware to a connected board (`pio run -t upload`), optionally on a specific port. |
+| `open_monitor_session` | Opens a persistent serial monitor and returns a `sessionId`. Persistence avoids re-resetting the board on every read. |
+| `read_monitor_session` | Returns output from an open session — incremental (new lines) by default, or the full buffer with `fromStart`. Reports dropped lines and process exit. |
+| `close_monitor_session` | Closes a session, kills its process, and releases the serial port. |
 
-Planned for `v0.1` (in progress): persistent monitor sessions (`open_monitor_session` / `read_monitor_session` / `close_monitor_session`).
+This completes the `v0.1` execution-layer tool set. Deferred to later releases: `get_board_info`, `init_project`, `generate_compile_commands`, library management, and MCP Apps inline UI for the monitor panel.
 
 ## Scope
 

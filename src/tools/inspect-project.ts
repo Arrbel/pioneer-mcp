@@ -148,10 +148,7 @@ export async function runInspectProject(
     ? compareViews(config.environments, metadata.environments)
     : [];
 
-  const warnings = [
-    ...config.warnings,
-    ...resolution.resolutionWarnings,
-  ];
+  const warnings = [...config.warnings, ...resolution.resolutionWarnings];
   if (!metadata.available && metadata.unavailableReason) {
     warnings.push(
       `Execution-truth metadata unavailable: ${metadata.unavailableReason} Reported values come from static parsing only.`
@@ -195,8 +192,7 @@ export async function runInspectProject(
     );
   }
 
-  const status =
-    warnings.length > 0 || !metadata.available ? 'warning' : 'ok';
+  const status = warnings.length > 0 || !metadata.available ? 'warning' : 'ok';
   const envCount = config.environments.length;
   const summary =
     `Inspected ${input.projectDir}: ${envCount} environment(s), ` +

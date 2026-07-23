@@ -29,7 +29,11 @@ function metadataRunner(metadata: unknown): ProcessRunner {
     if (args.includes('metadata')) {
       return { stdout: JSON.stringify(metadata), stderr: '', exitCode: 0 };
     }
-    return { stdout: 'PlatformIO Core, version 6.1.19', stderr: '', exitCode: 0 };
+    return {
+      stdout: 'PlatformIO Core, version 6.1.19',
+      stderr: '',
+      exitCode: 0,
+    };
   };
 }
 

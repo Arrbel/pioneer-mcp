@@ -56,7 +56,9 @@ export async function runListEnvironments(
         : error instanceof Error
           ? error.message
           : 'Unknown error reading platformio.ini.';
-    return errorResponse(reason, ['The target directory is not a PlatformIO project root.']);
+    return errorResponse(reason, [
+      'The target directory is not a PlatformIO project root.',
+    ]);
   }
 
   const config = parsePlatformIOIni(contents);

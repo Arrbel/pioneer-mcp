@@ -148,10 +148,7 @@ export interface ReadResult {
  * previous read (advancing the cursor); pass fromStart to return the full
  * retained buffer without advancing incremental semantics.
  */
-export function readSession(
-  sessionId: string,
-  fromStart = false
-): ReadResult {
+export function readSession(sessionId: string, fromStart = false): ReadResult {
   const session = sessions.get(sessionId);
   if (!session) {
     return { found: false, lines: [], droppedLines: 0, hasMore: false };

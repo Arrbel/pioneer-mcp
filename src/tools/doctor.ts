@@ -21,8 +21,7 @@ import {
 
 /** Stable, machine-readable problem codes surfaced by doctor. */
 export type ProblemCode =
-  | 'platformio_cli_missing'
-  | 'platformio_cli_not_shell_callable';
+  'platformio_cli_missing' | 'platformio_cli_not_shell_callable';
 
 export interface DoctorProblem {
   code: ProblemCode;
@@ -129,6 +128,8 @@ export async function runDoctor(): Promise<ToolResponse<DoctorData>> {
       : 'PlatformIO CLI resolved and ready.',
     data,
     warnings,
-    nextActions: ['Run inspect_project to resolve project truth before building.'],
+    nextActions: [
+      'Run inspect_project to resolve project truth before building.',
+    ],
   });
 }

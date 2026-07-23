@@ -19,7 +19,9 @@ async function main(): Promise<void> {
     console.error(
       'Warning: PlatformIO CLI not found. Install from https://platformio.org/install/cli'
     );
-    console.error('The server will start, but commands will fail until it is available.\n');
+    console.error(
+      'The server will start, but commands will fail until it is available.\n'
+    );
   }
 
   const server = createServer();

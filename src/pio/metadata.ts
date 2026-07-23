@@ -70,10 +70,9 @@ export async function loadProjectMetadata(
 ): Promise<MetadataResult> {
   let result: CommandResult;
   try {
-    result = await execPio(
-      ['project', 'metadata', '--json-output'],
-      { cwd: projectDir }
-    );
+    result = await execPio(['project', 'metadata', '--json-output'], {
+      cwd: projectDir,
+    });
   } catch (error) {
     if (error instanceof PioNotFoundError) {
       return {

@@ -34,7 +34,9 @@ export const openMonitorSessionInputSchema = z.object({
     .string()
     .trim()
     .min(1)
-    .describe('Serial port to open (e.g. COM5, /dev/ttyUSB0). Discover with list_devices.'),
+    .describe(
+      'Serial port to open (e.g. COM5, /dev/ttyUSB0). Discover with list_devices.'
+    ),
   baud: z
     .number()
     .int()
@@ -42,7 +44,9 @@ export const openMonitorSessionInputSchema = z.object({
     .optional()
     .describe('Baud rate. If omitted, platformio.ini monitor_speed is used.'),
 });
-export type OpenMonitorSessionInput = z.infer<typeof openMonitorSessionInputSchema>;
+export type OpenMonitorSessionInput = z.infer<
+  typeof openMonitorSessionInputSchema
+>;
 
 export interface OpenMonitorSessionData {
   sessionId: string;
@@ -76,9 +80,15 @@ export async function runOpenMonitorSession(
     });
   } catch (error) {
     if (error instanceof PioNotFoundError) {
-      return errorResponse(error.message, [], ['Install PlatformIO Core CLI, then run doctor.']);
+      return errorResponse(
+        error.message,
+        [],
+        ['Install PlatformIO Core CLI, then run doctor.']
+      );
     }
-    return errorResponse(error instanceof Error ? error.message : 'Failed to open session.');
+    return errorResponse(
+      error instanceof Error ? error.message : 'Failed to open session.'
+    );
   }
 }
 
@@ -87,13 +97,20 @@ export async function runOpenMonitorSession(
 /* -------------------------------------------------------------------------- */
 
 export const readMonitorSessionInputSchema = z.object({
-  sessionId: z.string().min(1).describe('Session id returned by open_monitor_session.'),
+  sessionId: z
+    .string()
+    .min(1)
+    .describe('Session id returned by open_monitor_session.'),
   fromStart: z
     .boolean()
     .optional()
-    .describe('If true, return the full retained buffer instead of only new lines.'),
+    .describe(
+      'If true, return the full retained buffer instead of only new lines.'
+    ),
 });
-export type ReadMonitorSessionInput = z.infer<typeof readMonitorSessionInputSchema>;
+export type ReadMonitorSessionInput = z.infer<
+  typeof readMonitorSessionInputSchema
+>;
 
 export interface ReadMonitorSessionData {
   sessionId: string;
@@ -151,7 +168,9 @@ export async function runReadMonitorSession(
 export const closeMonitorSessionInputSchema = z.object({
   sessionId: z.string().min(1).describe('Session id to close.'),
 });
-export type CloseMonitorSessionInput = z.infer<typeof closeMonitorSessionInputSchema>;
+export type CloseMonitorSessionInput = z.infer<
+  typeof closeMonitorSessionInputSchema
+>;
 
 export interface CloseMonitorSessionData {
   sessionId: string;

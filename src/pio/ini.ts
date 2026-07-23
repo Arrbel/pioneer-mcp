@@ -34,10 +34,7 @@ export interface ParsedConfig {
 
 /** How an environment was (or wasn't) resolved from static config. */
 export type EnvironmentResolution =
-  | 'default_envs'
-  | 'single_environment_fallback'
-  | 'ambiguous'
-  | 'not_resolved';
+  'default_envs' | 'single_environment_fallback' | 'ambiguous' | 'not_resolved';
 
 export interface ResolutionResult {
   resolvedEnvironment?: string;

@@ -11,12 +11,7 @@ export type ToolStatus = 'ok' | 'warning' | 'error';
 
 /** What kind of operation a tool performed. */
 export type OperationType =
-  | 'diagnostic'
-  | 'read'
-  | 'build'
-  | 'upload'
-  | 'monitor'
-  | 'package';
+  'diagnostic' | 'read' | 'build' | 'upload' | 'monitor' | 'package';
 
 /** Whether the underlying execution succeeded, partially succeeded, or failed. */
 export type ExecutionStatus = 'succeeded' | 'partial' | 'failed' | 'skipped';

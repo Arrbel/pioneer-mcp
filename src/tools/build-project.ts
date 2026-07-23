@@ -58,12 +58,17 @@ export async function runBuildProject(
 ): Promise<ToolResponse<BuildProjectData | null>> {
   const startedAt = Date.now();
 
-  const target = await resolveTargetEnvironment(input.projectDir, input.environment);
+  const target = await resolveTargetEnvironment(
+    input.projectDir,
+    input.environment
+  );
   if (!target.ok || !target.environment) {
     return errorResponse(
       target.refusalReason ?? 'Could not resolve a build environment.',
       target.refusalWarnings ?? [],
-      ['Call inspect_project to see available environments, then pass one explicitly.']
+      [
+        'Call inspect_project to see available environments, then pass one explicitly.',
+      ]
     );
   }
 
@@ -75,14 +80,22 @@ export async function runBuildProject(
     });
   } catch (error) {
     if (error instanceof PioNotFoundError) {
-      return errorResponse(error.message, [], ['Install PlatformIO Core CLI, then run doctor.']);
+      return errorResponse(
+        error.message,
+        [],
+        ['Install PlatformIO Core CLI, then run doctor.']
+      );
     }
-    return errorResponse(error instanceof Error ? error.message : 'Build failed to start.');
+    return errorResponse(
+      error instanceof Error ? error.message : 'Build failed to start.'
+    );
   }
 
   const succeeded = result.exitCode === 0;
   const memoryUsage = parseMemoryUsage(result.stdout);
-  const outputTail = tail(succeeded ? result.stdout : result.stderr || result.stdout);
+  const outputTail = tail(
+    succeeded ? result.stdout : result.stderr || result.stdout
+  );
 
   const data: BuildProjectData = {
     environment: target.environment,
@@ -109,7 +122,9 @@ export async function runBuildProject(
     data,
     warnings: succeeded ? [] : ['Compilation did not complete successfully.'],
     nextActions: succeeded
-      ? ['Run upload_firmware to flash the built environment to a connected board.']
+      ? [
+          'Run upload_firmware to flash the built environment to a connected board.',
+        ]
       : ['Review outputTail for the first error; fix and rebuild.'],
   });
 }

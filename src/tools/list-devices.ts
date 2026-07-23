@@ -47,7 +47,9 @@ export function parseDevices(stdout: string): SerialDevice[] {
   }
   if (!Array.isArray(parsed)) return [];
   return parsed
-    .filter((entry): entry is RawDevice => typeof entry === 'object' && entry !== null)
+    .filter(
+      (entry): entry is RawDevice => typeof entry === 'object' && entry !== null
+    )
     .map((entry) => ({
       port: entry.port ?? '',
       description: entry.description,
@@ -68,9 +70,11 @@ export async function runListDevices(): Promise<
     });
   } catch (error) {
     if (error instanceof PioNotFoundError) {
-      return errorResponse(error.message, [], [
-        'Install PlatformIO Core CLI, then run doctor.',
-      ]);
+      return errorResponse(
+        error.message,
+        [],
+        ['Install PlatformIO Core CLI, then run doctor.']
+      );
     }
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to list devices.'

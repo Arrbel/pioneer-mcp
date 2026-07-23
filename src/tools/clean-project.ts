@@ -46,12 +46,17 @@ export async function runCleanProject(
 ): Promise<ToolResponse<CleanProjectData | null>> {
   const startedAt = Date.now();
 
-  const target = await resolveTargetEnvironment(input.projectDir, input.environment);
+  const target = await resolveTargetEnvironment(
+    input.projectDir,
+    input.environment
+  );
   if (!target.ok || !target.environment) {
     return errorResponse(
       target.refusalReason ?? 'Could not resolve an environment to clean.',
       target.refusalWarnings ?? [],
-      ['Call inspect_project to see available environments, then pass one explicitly.']
+      [
+        'Call inspect_project to see available environments, then pass one explicitly.',
+      ]
     );
   }
 
@@ -64,9 +69,15 @@ export async function runCleanProject(
     });
   } catch (error) {
     if (error instanceof PioNotFoundError) {
-      return errorResponse(error.message, [], ['Install PlatformIO Core CLI, then run doctor.']);
+      return errorResponse(
+        error.message,
+        [],
+        ['Install PlatformIO Core CLI, then run doctor.']
+      );
     }
-    return errorResponse(error instanceof Error ? error.message : 'Clean failed to start.');
+    return errorResponse(
+      error instanceof Error ? error.message : 'Clean failed to start.'
+    );
   }
 
   const succeeded = result.exitCode === 0;
@@ -86,6 +97,8 @@ export async function runCleanProject(
         durationMs: Date.now() - startedAt,
       },
     },
-    warnings: succeeded ? [] : [result.stderr.trim() || 'Clean did not complete.'],
+    warnings: succeeded
+      ? []
+      : [result.stderr.trim() || 'Clean did not complete.'],
   });
 }

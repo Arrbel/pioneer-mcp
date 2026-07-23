@@ -66,7 +66,12 @@ describe('parseBoards', () => {
   it('normalizes board summaries', () => {
     const boards = parseBoards(
       JSON.stringify([
-        { id: 'esp32dev', name: 'Espressif ESP32 Dev', platform: 'espressif32', mcu: 'ESP32' },
+        {
+          id: 'esp32dev',
+          name: 'Espressif ESP32 Dev',
+          platform: 'espressif32',
+          mcu: 'ESP32',
+        },
       ])
     );
     expect(boards[0]?.id).toBe('esp32dev');

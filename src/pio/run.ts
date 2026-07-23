@@ -48,7 +48,9 @@ export async function resolveTargetEnvironment(
     return {
       ok: false,
       refusalReason: `No platformio.ini found in ${projectDir}.`,
-      refusalWarnings: ['The target directory is not a PlatformIO project root.'],
+      refusalWarnings: [
+        'The target directory is not a PlatformIO project root.',
+      ],
     };
   }
 

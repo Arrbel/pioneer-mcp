@@ -72,13 +72,17 @@ export function parseBoards(stdout: string): BoardSummary[] {
   }
   if (!Array.isArray(parsed)) return [];
   return parsed
-    .filter((entry): entry is RawBoard => typeof entry === 'object' && entry !== null)
+    .filter(
+      (entry): entry is RawBoard => typeof entry === 'object' && entry !== null
+    )
     .map((entry) => ({
       id: entry.id ?? '',
       name: entry.name,
       platform: entry.platform,
       mcu: entry.mcu,
-      frameworks: Array.isArray(entry.frameworks) ? entry.frameworks : undefined,
+      frameworks: Array.isArray(entry.frameworks)
+        ? entry.frameworks
+        : undefined,
     }))
     .filter((board) => board.id.length > 0);
 }
@@ -98,9 +102,11 @@ export async function runListBoards(
     result = await execPio(args, { timeoutMs: 60_000 });
   } catch (error) {
     if (error instanceof PioNotFoundError) {
-      return errorResponse(error.message, [], [
-        'Install PlatformIO Core CLI, then run doctor.',
-      ]);
+      return errorResponse(
+        error.message,
+        [],
+        ['Install PlatformIO Core CLI, then run doctor.']
+      );
     }
     return errorResponse(
       error instanceof Error ? error.message : 'Failed to list boards.'
@@ -133,9 +139,10 @@ export async function runListBoards(
     );
   }
 
-  const nextActions = !input.query && allBoards.length > limit
-    ? ['Provide a query to narrow the catalog to the board you need.']
-    : [];
+  const nextActions =
+    !input.query && allBoards.length > limit
+      ? ['Provide a query to narrow the catalog to the board you need.']
+      : [];
 
   return buildResponse({
     status: warnings.length > 0 ? 'warning' : 'ok',

@@ -18,10 +18,19 @@ import {
   listEnvironmentsInputSchema,
   runListEnvironments,
 } from './tools/list-environments.js';
-import { listDevicesInputSchema, runListDevices } from './tools/list-devices.js';
+import {
+  listDevicesInputSchema,
+  runListDevices,
+} from './tools/list-devices.js';
 import { listBoardsInputSchema, runListBoards } from './tools/list-boards.js';
-import { buildProjectInputSchema, runBuildProject } from './tools/build-project.js';
-import { cleanProjectInputSchema, runCleanProject } from './tools/clean-project.js';
+import {
+  buildProjectInputSchema,
+  runBuildProject,
+} from './tools/build-project.js';
+import {
+  cleanProjectInputSchema,
+  runCleanProject,
+} from './tools/clean-project.js';
 import {
   uploadFirmwareInputSchema,
   runUploadFirmware,

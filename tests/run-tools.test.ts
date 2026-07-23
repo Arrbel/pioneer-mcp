@@ -35,10 +35,18 @@ const BUILD_OK = [
 ].join('\n');
 
 /** A runner that returns a version for probes and a scripted run outcome. */
-function runRunner(exitCode: number, stdout: string, stderr = ''): ProcessRunner {
+function runRunner(
+  exitCode: number,
+  stdout: string,
+  stderr = ''
+): ProcessRunner {
   return async (_file, args) => {
     if (args.includes('run')) return { stdout, stderr, exitCode };
-    return { stdout: 'PlatformIO Core, version 6.1.19', stderr: '', exitCode: 0 };
+    return {
+      stdout: 'PlatformIO Core, version 6.1.19',
+      stderr: '',
+      exitCode: 0,
+    };
   };
 }
 
@@ -61,7 +69,9 @@ describe('parseMemoryUsage', () => {
 
 describe('build_project', () => {
   it('builds the resolved default environment and reports memory', async () => {
-    await writeIni('[platformio]\ndefault_envs = esp32dev\n\n[env:esp32dev]\nboard = esp32dev\n');
+    await writeIni(
+      '[platformio]\ndefault_envs = esp32dev\n\n[env:esp32dev]\nboard = esp32dev\n'
+    );
     setProcessRunner(runRunner(0, BUILD_OK));
 
     const response = await runBuildProject({ projectDir });
@@ -85,7 +95,9 @@ describe('build_project', () => {
 
   it('reports a failed build with a diagnostic tail', async () => {
     await writeIni('[env:only]\nboard = x\n');
-    setProcessRunner(runRunner(1, '', "src/main.cpp:10:3: error: 'foo' was not declared"));
+    setProcessRunner(
+      runRunner(1, '', "src/main.cpp:10:3: error: 'foo' was not declared")
+    );
 
     const response = await runBuildProject({ projectDir });
 
@@ -105,7 +117,9 @@ describe('clean_project', () => {
 
     expect(response.status).toBe('ok');
     expect(response.data?.environment).toBe('only');
-    expect(response.data?.environmentSource).toBe('single_environment_fallback');
+    expect(response.data?.environmentSource).toBe(
+      'single_environment_fallback'
+    );
   });
 });
 
@@ -128,9 +142,14 @@ describe('upload_firmware', () => {
 
   it('reports upload failure with a retry hint', async () => {
     await writeIni('[env:esp32dev]\nboard = esp32dev\n');
-    setProcessRunner(runRunner(1, '', 'A fatal error occurred: Failed to connect to ESP32'));
+    setProcessRunner(
+      runRunner(1, '', 'A fatal error occurred: Failed to connect to ESP32')
+    );
 
-    const response = await runUploadFirmware({ projectDir, environment: 'esp32dev' });
+    const response = await runUploadFirmware({
+      projectDir,
+      environment: 'esp32dev',
+    });
 
     expect(response.status).toBe('error');
     expect(response.data?.meta.failureCategory).toBe('upload_failed');

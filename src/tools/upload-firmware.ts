@@ -65,12 +65,17 @@ export async function runUploadFirmware(
 ): Promise<ToolResponse<UploadFirmwareData | null>> {
   const startedAt = Date.now();
 
-  const target = await resolveTargetEnvironment(input.projectDir, input.environment);
+  const target = await resolveTargetEnvironment(
+    input.projectDir,
+    input.environment
+  );
   if (!target.ok || !target.environment) {
     return errorResponse(
       target.refusalReason ?? 'Could not resolve an environment to upload.',
       target.refusalWarnings ?? [],
-      ['Call inspect_project to see available environments, then pass one explicitly.']
+      [
+        'Call inspect_project to see available environments, then pass one explicitly.',
+      ]
     );
   }
 
@@ -84,13 +89,21 @@ export async function runUploadFirmware(
     });
   } catch (error) {
     if (error instanceof PioNotFoundError) {
-      return errorResponse(error.message, [], ['Install PlatformIO Core CLI, then run doctor.']);
+      return errorResponse(
+        error.message,
+        [],
+        ['Install PlatformIO Core CLI, then run doctor.']
+      );
     }
-    return errorResponse(error instanceof Error ? error.message : 'Upload failed to start.');
+    return errorResponse(
+      error instanceof Error ? error.message : 'Upload failed to start.'
+    );
   }
 
   const succeeded = result.exitCode === 0;
-  const outputTail = tail(succeeded ? result.stdout : result.stderr || result.stdout);
+  const outputTail = tail(
+    succeeded ? result.stdout : result.stderr || result.stdout
+  );
 
   const data: UploadFirmwareData = {
     environment: target.environment,
@@ -115,7 +128,9 @@ export async function runUploadFirmware(
       ? `Uploaded firmware to '${target.environment}'${input.uploadPort ? ` on ${input.uploadPort}` : ''}.`
       : `Upload failed for '${target.environment}' (exit ${result.exitCode}).`,
     data,
-    warnings: succeeded ? [] : ['Firmware upload did not complete successfully.'],
+    warnings: succeeded
+      ? []
+      : ['Firmware upload did not complete successfully.'],
     nextActions: succeeded
       ? ['Open a monitor session to observe device output after reset.']
       : [

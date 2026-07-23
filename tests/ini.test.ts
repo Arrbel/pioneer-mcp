@@ -72,7 +72,9 @@ describe('resolveEnvironment', () => {
   });
 
   it('is ambiguous with multiple envs and no default', () => {
-    const config = parsePlatformIOIni('[env:a]\nboard = x\n\n[env:b]\nboard = y');
+    const config = parsePlatformIOIni(
+      '[env:a]\nboard = x\n\n[env:b]\nboard = y'
+    );
     const result = resolveEnvironment(config);
     expect(result.environmentResolution).toBe('ambiguous');
     expect(result.resolvedEnvironment).toBeUndefined();

@@ -39,8 +39,9 @@ Pioneer is being built up one vertical slice at a time. Currently available:
 | Tool | Purpose |
 |------|---------|
 | `doctor` | Diagnose host readiness (CLI resolution, shell callability) with structured problem codes. No repairs. |
+| `inspect_project` | Read-only. Parses `platformio.ini` and reconciles it with `pio project metadata` to report environments, the resolved default environment, config/execution discrepancies, and complexity signals. |
 
-Planned for `v0.1` (in progress): `inspect_project`, `list_environments`, `list_boards`, `list_devices`, `build_project`, `clean_project`, `upload_firmware`, and persistent monitor sessions (`open_monitor_session` / `read_monitor_session` / `close_monitor_session`).
+Planned for `v0.1` (in progress): `list_environments`, `list_boards`, `list_devices`, `build_project`, `clean_project`, `upload_firmware`, and persistent monitor sessions (`open_monitor_session` / `read_monitor_session` / `close_monitor_session`).
 
 ## Scope
 

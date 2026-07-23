@@ -10,6 +10,10 @@ import { readFileSync } from 'node:fs';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { toMcpContent } from './result.js';
 import { doctorInputSchema, runDoctor } from './tools/doctor.js';
+import {
+  inspectProjectInputSchema,
+  runInspectProject,
+} from './tools/inspect-project.js';
 
 /** Reads the server version from package.json at runtime. */
 export function readServerVersion(): string {
@@ -40,6 +44,19 @@ export function createServer(): McpServer {
       inputSchema: doctorInputSchema.shape,
     },
     async () => toMcpContent(await runDoctor())
+  );
+
+  server.registerTool(
+    'inspect_project',
+    {
+      title: 'Inspect a PlatformIO project',
+      description:
+        'Read-only. Parses platformio.ini and reconciles it with `pio project metadata` to report ' +
+        'environments, the resolved default environment, config/execution discrepancies, and complexity ' +
+        'signals. Call before any build/upload to act on a known project state. Performs no changes.',
+      inputSchema: inspectProjectInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runInspectProject(args))
   );
 
   return server;

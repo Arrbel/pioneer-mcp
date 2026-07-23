@@ -40,8 +40,11 @@ Pioneer is being built up one vertical slice at a time. Currently available:
 |------|---------|
 | `doctor` | Diagnose host readiness (CLI resolution, shell callability) with structured problem codes. No repairs. |
 | `inspect_project` | Read-only. Parses `platformio.ini` and reconciles it with `pio project metadata` to report environments, the resolved default environment, config/execution discrepancies, and complexity signals. |
+| `list_environments` | Read-only, config-only. Lists environments declared in `platformio.ini` plus the resolved default. Lightweight alternative to `inspect_project`. |
+| `list_devices` | Read-only. Lists serial/USB devices visible to PlatformIO (port, description, hwid). |
+| `list_boards` | Read-only. Searches the PlatformIO board catalog by query (id, name, platform, MCU); results capped with truncation reporting. |
 
-Planned for `v0.1` (in progress): `list_environments`, `list_boards`, `list_devices`, `build_project`, `clean_project`, `upload_firmware`, and persistent monitor sessions (`open_monitor_session` / `read_monitor_session` / `close_monitor_session`).
+Planned for `v0.1` (in progress): `build_project`, `clean_project`, `upload_firmware`, and persistent monitor sessions (`open_monitor_session` / `read_monitor_session` / `close_monitor_session`).
 
 ## Scope
 

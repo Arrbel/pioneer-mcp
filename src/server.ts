@@ -14,6 +14,12 @@ import {
   inspectProjectInputSchema,
   runInspectProject,
 } from './tools/inspect-project.js';
+import {
+  listEnvironmentsInputSchema,
+  runListEnvironments,
+} from './tools/list-environments.js';
+import { listDevicesInputSchema, runListDevices } from './tools/list-devices.js';
+import { listBoardsInputSchema, runListBoards } from './tools/list-boards.js';
 
 /** Reads the server version from package.json at runtime. */
 export function readServerVersion(): string {
@@ -57,6 +63,42 @@ export function createServer(): McpServer {
       inputSchema: inspectProjectInputSchema.shape,
     },
     async (args) => toMcpContent(await runInspectProject(args))
+  );
+
+  server.registerTool(
+    'list_environments',
+    {
+      title: 'List PlatformIO environments',
+      description:
+        'Read-only, config-only. Lists environments declared in platformio.ini plus the resolved default. ' +
+        'Lightweight alternative to inspect_project when execution-truth reconciliation is not needed.',
+      inputSchema: listEnvironmentsInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runListEnvironments(args))
+  );
+
+  server.registerTool(
+    'list_devices',
+    {
+      title: 'List connected serial devices',
+      description:
+        'Read-only. Lists serial/USB devices visible to PlatformIO (port, description, hwid). ' +
+        'Use to pick an upload/monitor port and confirm a board is connected.',
+      inputSchema: listDevicesInputSchema.shape,
+    },
+    async () => toMcpContent(await runListDevices())
+  );
+
+  server.registerTool(
+    'list_boards',
+    {
+      title: 'Search the PlatformIO board catalog',
+      description:
+        'Read-only. Searches the PlatformIO board catalog by query (board id, name, platform, or MCU). ' +
+        'Provide a query to narrow the large catalog; results are capped and report truncation.',
+      inputSchema: listBoardsInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runListBoards(args))
   );
 
   return server;

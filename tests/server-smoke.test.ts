@@ -24,6 +24,9 @@ describe('server', () => {
     const names = tools.tools.map((t) => t.name);
     expect(names).toContain('doctor');
     expect(names).toContain('inspect_project');
+    expect(names).toContain('list_environments');
+    expect(names).toContain('list_devices');
+    expect(names).toContain('list_boards');
 
     const result = await client.callTool({ name: 'doctor', arguments: {} });
     const content = result.content as { type: string; text: string }[];

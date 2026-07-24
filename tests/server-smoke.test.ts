@@ -27,12 +27,16 @@ describe('server', () => {
     expect(names).toContain('list_environments');
     expect(names).toContain('list_devices');
     expect(names).toContain('list_boards');
+    expect(names).toContain('get_board_info');
+    expect(names).toContain('init_project');
+    expect(names).toContain('generate_compile_commands');
     expect(names).toContain('build_project');
     expect(names).toContain('clean_project');
     expect(names).toContain('upload_firmware');
     expect(names).toContain('open_monitor_session');
     expect(names).toContain('read_monitor_session');
     expect(names).toContain('close_monitor_session');
+    expect(names).toHaveLength(14);
 
     const result = await client.callTool({ name: 'doctor', arguments: {} });
     const content = result.content as { type: string; text: string }[];

@@ -26,6 +26,8 @@ import {
 import { runInspectProject } from '../../src/tools/inspect-project.js';
 import { runListBoards } from '../../src/tools/list-boards.js';
 import { runListEnvironments } from '../../src/tools/list-environments.js';
+import { runGetBoardInfo } from '../../src/tools/get-board-info.js';
+import { runInitProject } from '../../src/tools/init-project.js';
 
 // Use the real process runner (undo any mock a prior file may have set) and
 // probe for an actual binary before deciding whether to run.
@@ -106,5 +108,44 @@ describe.skipIf(!pioAvailable)('real PlatformIO CLI', () => {
     expect(board).toBeDefined();
     expect(board?.platform).toBe('atmelavr');
     expect(board?.frameworks).toContain('arduino');
+  });
+
+  it('get_board_info returns the full uno record by exact id', async () => {
+    const response = await runGetBoardInfo({ boardId: 'uno' });
+    expect(response.status).toBe('ok');
+    expect(response.data?.board.id).toBe('uno');
+    expect(response.data?.board.mcu).toBe('ATMEGA328P');
+    expect(response.data?.board.frameworks).toContain('arduino');
+    // The catalog uses substring matching, so alternatives should appear.
+    expect(response.data?.alternatives.length ?? 0).toBeGreaterThan(0);
+  });
+
+  it('get_board_info rejects a non-exact id', async () => {
+    // "un" is a substring of many boards but not an exact id.
+    const response = await runGetBoardInfo({ boardId: 'un' });
+    expect(response.status).toBe('error');
+  });
+
+  it('init_project scaffolds a real project offline', async () => {
+    const initDir = await mkdtemp(join(tmpdir(), 'pioneer-realcli-init-'));
+    try {
+      const response = await runInitProject({
+        projectDir: initDir,
+        board: 'uno',
+        // Default (no install) keeps this offline and fast.
+      });
+      expect(response.status).toBe('ok');
+      expect(response.data?.environmentPresent).toBe(true);
+
+      // The resulting project must be inspectable end-to-end.
+      const inspected = await runInspectProject({ projectDir: initDir });
+      expect(inspected.data?.resolvedConfigAvailable).toBe(true);
+      const uno = inspected.data?.resolvedEnvironments.find(
+        (e) => e.name === 'uno'
+      );
+      expect(uno?.board).toBe('uno');
+    } finally {
+      await rm(initDir, { recursive: true, force: true });
+    }
   });
 });

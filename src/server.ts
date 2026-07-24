@@ -24,6 +24,18 @@ import {
 } from './tools/list-devices.js';
 import { listBoardsInputSchema, runListBoards } from './tools/list-boards.js';
 import {
+  getBoardInfoInputSchema,
+  runGetBoardInfo,
+} from './tools/get-board-info.js';
+import {
+  initProjectInputSchema,
+  runInitProject,
+} from './tools/init-project.js';
+import {
+  generateCompileCommandsInputSchema,
+  runGenerateCompileCommands,
+} from './tools/generate-compile-commands.js';
+import {
   buildProjectInputSchema,
   runBuildProject,
 } from './tools/build-project.js';
@@ -80,9 +92,10 @@ export function createServer(): McpServer {
     {
       title: 'Inspect a PlatformIO project',
       description:
-        'Read-only. Parses platformio.ini and reconciles it with `pio project metadata` to report ' +
-        'environments, the resolved default environment, config/execution discrepancies, and complexity ' +
-        'signals. Call before any build/upload to act on a known project state. Performs no changes.',
+        "Read-only. Parses platformio.ini and reconciles it with `pio project config` (PlatformIO's " +
+        'resolved configuration) to report environments, the resolved default environment, config/execution ' +
+        'discrepancies, and complexity signals. Call before any build/upload to act on a known project state. ' +
+        'Performs no changes.',
       inputSchema: inspectProjectInputSchema.shape,
     },
     async (args) => toMcpContent(await runInspectProject(args))
@@ -122,6 +135,45 @@ export function createServer(): McpServer {
       inputSchema: listBoardsInputSchema.shape,
     },
     async (args) => toMcpContent(await runListBoards(args))
+  );
+
+  server.registerTool(
+    'get_board_info',
+    {
+      title: 'Get details for one board',
+      description:
+        'Read-only. Returns the full catalog record for a single board id (MCU, clock, RAM/ROM, frameworks, ' +
+        'vendor, debug tools). The id must be exact — `pio boards` is a substring search, so this selects the ' +
+        'exact match and lists near-miss ids as alternatives. Discover ids with list_boards.',
+      inputSchema: getBoardInfoInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runGetBoardInfo(args))
+  );
+
+  server.registerTool(
+    'init_project',
+    {
+      title: 'Initialize a PlatformIO project',
+      description:
+        'Filesystem-mutating. Scaffolds a PlatformIO project (src/, include/, lib/, test/, platformio.ini) for ' +
+        'a board, or non-destructively adds an [env:<board>] section to an existing project. Skips dependency ' +
+        'install by default (installs lazily on first build). Verify the board id with get_board_info first.',
+      inputSchema: initProjectInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runInitProject(args))
+  );
+
+  server.registerTool(
+    'generate_compile_commands',
+    {
+      title: 'Generate compile_commands.json',
+      description:
+        'Writes a clang compilation database (compile_commands.json) to the project root via pio run -t ' +
+        'compiledb, for editor/clangd IntelliSense. On a cold project this installs the platform/toolchain and ' +
+        'can take minutes (needs network). Refuses ambiguous environment resolution.',
+      inputSchema: generateCompileCommandsInputSchema.shape,
+    },
+    async (args) => toMcpContent(await runGenerateCompileCommands(args))
   );
 
   server.registerTool(

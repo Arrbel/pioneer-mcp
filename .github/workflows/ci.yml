@@ -42,3 +42,36 @@ jobs:
 
       - name: Test
         run: npm test
+
+  integration:
+    name: Real PlatformIO CLI integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # These integration tests run the actual `pio` binary to lock our
+      # assumptions about PlatformIO output formats. The commands used
+      # (project config, boards) are offline and need no toolchain download.
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Integration tests
+        run: npm run test:integration

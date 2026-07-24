@@ -2,9 +2,10 @@
  * inspect_project — the read-only truth layer.
  *
  * Combines two independent views of a PlatformIO project:
- *   1. Config truth  — what platformio.ini statically says (parsed here).
- *   2. Execution truth — what `pio project metadata` reports after PlatformIO
- *      resolves the project (authoritative).
+ *   1. Config truth    — what platformio.ini statically says (parsed here).
+ *   2. Execution truth  — what `pio project config` reports after PlatformIO
+ *      resolves the project, applying extends/extra_configs/${...}
+ *      interpolation (authoritative).
  *
  * It reports both, flags where they disagree, and resolves which environment
  * a build/upload would target if none is specified. Agents use this before any
@@ -28,9 +29,9 @@ import {
   type EnvironmentSummary,
 } from '../pio/ini.js';
 import {
-  loadProjectMetadata,
-  type EnvironmentMetadata,
-} from '../pio/metadata.js';
+  loadResolvedConfig,
+  type ResolvedEnvironment,
+} from '../pio/resolved-config.js';
 
 export const inspectProjectInputSchema = z.object({
   projectDir: z
@@ -43,7 +44,7 @@ export const inspectProjectInputSchema = z.object({
 
 export type InspectProjectInput = z.infer<typeof inspectProjectInputSchema>;
 
-/** A per-environment disagreement between static config and CLI metadata. */
+/** A per-environment disagreement between static config and resolved config. */
 export interface ConfigDiscrepancy {
   environment: string;
   field: 'board' | 'platform' | 'framework';
@@ -59,10 +60,11 @@ export interface InspectProjectData {
   resolvedEnvironment?: string;
   environmentResolution: EnvironmentResolution;
   resolutionReason: string;
-  metadataAvailable: boolean;
-  metadataUnavailableReason?: string;
-  metadataEnvironments: EnvironmentMetadata[];
-  /** Fields where static parse and CLI metadata disagree. Prefer metadata. */
+  /** Whether the CLI produced execution-truth resolved config. */
+  resolvedConfigAvailable: boolean;
+  resolvedConfigUnavailableReason?: string;
+  resolvedEnvironments: ResolvedEnvironment[];
+  /** Fields where static parse and resolved config disagree. Prefer resolved. */
   discrepancies: ConfigDiscrepancy[];
   /** Config features that reduce trust in the static parse. */
   complexitySignals: string[];
@@ -71,42 +73,46 @@ export interface InspectProjectData {
 
 function compareViews(
   environments: EnvironmentSummary[],
-  metadataEnvironments: EnvironmentMetadata[]
+  resolvedEnvironments: ResolvedEnvironment[]
 ): ConfigDiscrepancy[] {
-  const byName = new Map(metadataEnvironments.map((env) => [env.name, env]));
+  const byName = new Map(resolvedEnvironments.map((env) => [env.name, env]));
   const discrepancies: ConfigDiscrepancy[] = [];
 
   for (const env of environments) {
-    const meta = byName.get(env.name);
-    if (!meta) continue;
+    const resolved = byName.get(env.name);
+    if (!resolved) continue;
 
-    if (env.board && meta.board && env.board !== meta.board) {
+    if (env.board && resolved.board && env.board !== resolved.board) {
       discrepancies.push({
         environment: env.name,
         field: 'board',
         configValue: env.board,
-        executionValue: meta.board,
+        executionValue: resolved.board,
       });
     }
-    if (env.platform && meta.platform && env.platform !== meta.platform) {
+    if (
+      env.platform &&
+      resolved.platform &&
+      env.platform !== resolved.platform
+    ) {
       discrepancies.push({
         environment: env.name,
         field: 'platform',
         configValue: env.platform,
-        executionValue: meta.platform,
+        executionValue: resolved.platform,
       });
     }
     if (
       env.framework &&
-      meta.framework &&
-      meta.framework.length > 0 &&
-      !meta.framework.includes(env.framework)
+      resolved.framework &&
+      resolved.framework.length > 0 &&
+      !resolved.framework.includes(env.framework)
     ) {
       discrepancies.push({
         environment: env.name,
         field: 'framework',
         configValue: env.framework,
-        executionValue: meta.framework.join(', '),
+        executionValue: resolved.framework.join(', '),
       });
     }
   }
@@ -114,7 +120,7 @@ function compareViews(
   return discrepancies;
 }
 
-/** Reads platformio.ini, parses it, and reconciles with CLI metadata. */
+/** Reads platformio.ini, parses it, and reconciles with resolved CLI config. */
 export async function runInspectProject(
   input: InspectProjectInput
 ): Promise<ToolResponse<InspectProjectData | null>> {
@@ -143,20 +149,20 @@ export async function runInspectProject(
 
   const config = parsePlatformIOIni(contents);
   const resolution = resolveEnvironment(config);
-  const metadata = await loadProjectMetadata(input.projectDir);
-  const discrepancies = metadata.available
-    ? compareViews(config.environments, metadata.environments)
+  const resolved = await loadResolvedConfig(input.projectDir);
+  const discrepancies = resolved.available
+    ? compareViews(config.environments, resolved.environments)
     : [];
 
   const warnings = [...config.warnings, ...resolution.resolutionWarnings];
-  if (!metadata.available && metadata.unavailableReason) {
+  if (!resolved.available && resolved.unavailableReason) {
     warnings.push(
-      `Execution-truth metadata unavailable: ${metadata.unavailableReason} Reported values come from static parsing only.`
+      `Execution-truth config unavailable: ${resolved.unavailableReason} Reported values come from static parsing only.`
     );
   }
   if (discrepancies.length > 0) {
     warnings.push(
-      `Static config disagrees with CLI metadata in ${discrepancies.length} field(s); trust the execution values.`
+      `Static config disagrees with resolved CLI config in ${discrepancies.length} field(s); trust the execution values.`
     );
   }
 
@@ -168,14 +174,14 @@ export async function runInspectProject(
     resolvedEnvironment: resolution.resolvedEnvironment,
     environmentResolution: resolution.environmentResolution,
     resolutionReason: resolution.resolutionReason,
-    metadataAvailable: metadata.available,
-    metadataUnavailableReason: metadata.unavailableReason,
-    metadataEnvironments: metadata.environments,
+    resolvedConfigAvailable: resolved.available,
+    resolvedConfigUnavailableReason: resolved.unavailableReason,
+    resolvedEnvironments: resolved.environments,
     discrepancies,
     complexitySignals: config.complexitySignals,
     meta: {
       operationType: 'read',
-      executionStatus: metadata.available ? 'succeeded' : 'partial',
+      executionStatus: resolved.available ? 'succeeded' : 'partial',
       durationMs: Date.now() - startedAt,
     },
   };
@@ -186,13 +192,13 @@ export async function runInspectProject(
       'Specify an environment explicitly, or set default_envs in platformio.ini, before building or uploading.'
     );
   }
-  if (!metadata.available) {
+  if (!resolved.available) {
     nextActions.push(
-      'Run doctor to diagnose why PlatformIO could not produce project metadata.'
+      'Run doctor to diagnose why PlatformIO could not resolve the project config.'
     );
   }
 
-  const status = warnings.length > 0 || !metadata.available ? 'warning' : 'ok';
+  const status = warnings.length > 0 || !resolved.available ? 'warning' : 'ok';
   const envCount = config.environments.length;
   const summary =
     `Inspected ${input.projectDir}: ${envCount} environment(s), ` +

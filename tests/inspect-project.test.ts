@@ -7,8 +7,12 @@ import { runInspectProject } from '../src/tools/inspect-project.js';
 
 /**
  * Integration test for the truth layer. A temp project supplies config truth;
- * an injected runner supplies execution truth (pio project metadata). No real
+ * an injected runner supplies execution truth (`pio project config`). No real
  * PlatformIO binary is required.
+ *
+ * The resolved-config runner emits the real CLI shape: a list of
+ * `[section, [[key, value], ...]]` pairs, where framework is a list and
+ * board/platform are scalars. Verified against PlatformIO 6.1.x.
  */
 
 let projectDir: string;
@@ -24,10 +28,23 @@ afterEach(async () => {
   await rm(projectDir, { recursive: true, force: true });
 });
 
-function metadataRunner(metadata: unknown): ProcessRunner {
+/** Builds the `pio project config --json-output` list for given envs. */
+function configListRunner(
+  envs: Record<
+    string,
+    { platform?: string; board?: string; framework?: string[] }
+  >
+): ProcessRunner {
+  const list = Object.entries(envs).map(([name, opts]) => {
+    const options: Array<[string, unknown]> = [];
+    if (opts.platform) options.push(['platform', opts.platform]);
+    if (opts.board) options.push(['board', opts.board]);
+    if (opts.framework) options.push(['framework', opts.framework]);
+    return [`env:${name}`, options];
+  });
   return async (_file, args) => {
-    if (args.includes('metadata')) {
-      return { stdout: JSON.stringify(metadata), stderr: '', exitCode: 0 };
+    if (args.includes('config')) {
+      return { stdout: JSON.stringify(list), stderr: '', exitCode: 0 };
     }
     return {
       stdout: 'PlatformIO Core, version 6.1.19',
@@ -38,17 +55,17 @@ function metadataRunner(metadata: unknown): ProcessRunner {
 }
 
 describe('inspect_project', () => {
-  it('reconciles config truth with execution metadata', async () => {
+  it('reconciles config truth with resolved execution config', async () => {
     await writeFile(
       join(projectDir, 'platformio.ini'),
       '[platformio]\ndefault_envs = esp32dev\n\n[env:esp32dev]\nplatform = espressif32\nboard = esp32dev\nframework = arduino\n'
     );
     setProcessRunner(
-      metadataRunner({
+      configListRunner({
         esp32dev: {
-          board_config: { name: 'esp32dev' },
-          platform: { name: 'espressif32' },
-          frameworks: ['arduino'],
+          platform: 'espressif32',
+          board: 'esp32dev',
+          framework: ['arduino'],
         },
       })
     );
@@ -58,19 +75,20 @@ describe('inspect_project', () => {
     expect(response.status).toBe('ok');
     expect(response.data?.environmentResolution).toBe('default_envs');
     expect(response.data?.resolvedEnvironment).toBe('esp32dev');
-    expect(response.data?.metadataAvailable).toBe(true);
+    expect(response.data?.resolvedConfigAvailable).toBe(true);
+    expect(response.data?.resolvedEnvironments[0]?.board).toBe('esp32dev');
     expect(response.data?.discrepancies).toHaveLength(0);
     expect(response.data?.meta.executionStatus).toBe('succeeded');
   });
 
-  it('flags a discrepancy when config board differs from metadata board', async () => {
+  it('flags a discrepancy when config board differs from resolved board', async () => {
     await writeFile(
       join(projectDir, 'platformio.ini'),
       '[env:only]\nboard = esp32dev\n'
     );
     setProcessRunner(
-      metadataRunner({
-        only: { board_config: { name: 'esp32-s3-devkitc-1' } },
+      configListRunner({
+        only: { board: 'esp32-s3-devkitc-1' },
       })
     );
 
@@ -84,7 +102,7 @@ describe('inspect_project', () => {
     );
   });
 
-  it('degrades to partial when metadata is unavailable', async () => {
+  it('degrades to partial when resolved config is unavailable', async () => {
     await writeFile(
       join(projectDir, 'platformio.ini'),
       '[env:a]\nboard = x\n\n[env:b]\nboard = y\n'
@@ -94,7 +112,7 @@ describe('inspect_project', () => {
     const response = await runInspectProject({ projectDir });
 
     expect(response.status).toBe('warning');
-    expect(response.data?.metadataAvailable).toBe(false);
+    expect(response.data?.resolvedConfigAvailable).toBe(false);
     expect(response.data?.environmentResolution).toBe('ambiguous');
     expect(response.data?.meta.executionStatus).toBe('partial');
     expect(response.nextActions.some((a) => a.includes('doctor'))).toBe(true);
